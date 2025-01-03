@@ -1,36 +1,145 @@
-import React from 'react';
-import '../CSS/Home.css';
+import React, { useState } from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import "../CSS/Home.css";
+import { QRCodeCanvas } from "qrcode.react"; // Import QRCodeCanvas
+// Import Stripe.js (we’ll use this later for the Stripe integration)
+import { loadStripe } from "@stripe/stripe-js";
 
+// Ensure you replace with your actual Stripe public key
+const stripePromise = loadStripe("your-publishable-stripe-key");
 
-const Home = () => (
+const Home = () => {
+  const [isExpanded, setIsExpanded] = useState(false); // Toggle for expandable content
+  const [isQRVisible, setIsQRVisible] = useState(false); // Toggle for QR code visibility
+
+  const galleryImages = [
+    "./images/photo1.jpg",
+    "./images/photo2.jpg",
+    "./images/photo3.jpg",
+    "./images/photo4.jpg",
+  ];
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    arrows: true,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 600, settings: { slidesToShow: 1 } },
+    ],
+  };
+
+  const handleToggleDescription = () => {
+    setIsExpanded((prevState) => !prevState); // Toggle expanded state
+  };
+
+  const handleToggleQR = () => {
+    setIsQRVisible((prevState) => !prevState); // Toggle QR code visibility
+  };
+
+  // Placeholder function for handling Stripe checkout (to be implemented later)
+  const handleStripePayment = async () => {
+    const stripe = await stripePromise;
+
+    // You will need to call your backend to create the Checkout Session and get the session ID
+    const response = await fetch("/create-checkout-session", { method: "POST" });
+    const session = await response.json();
+
+    // Redirect to Stripe checkout page
+    const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+
+    if (error) {
+      console.error("Error during Stripe Checkout", error);
+    }
+  };
+
+  return (
     <div>
-          <nav className="navbar">
-            <ul className="navbar-list">
-                <li className="navbar-item"><a href="/" className="navbar-link">Home</a></li>
-                <li className="navbar-item"><a href="/about" className="navbar-link">About</a></li>
-                <li className="navbar-item"><a href="/gallery" className="navbar-link">Gallery</a></li>
-                <li className="navbar-item"><a href="/contact" className="navbar-link">Contact</a></li>
-            </ul>
-        </nav>
-      <h1 className='hcolour'>Welcome To Birchwood Memories</h1>
-      <img src="./images/old_cabin_photo.jpg" alt="Image of a rustic cabin looking over a lake" style={{ display: 'block', margin: '0 auto', width: '500px', height: 'auto', boxShadow: '0 2px 4px rgba(0,0,0,0.9',}} />
-      <h2>Welcome to Birchwood Memories, a cherished retreat nestled amidst the serene beauty of Rose City, Michigan. This enchanting property offers a perfect blend of rustic charm and natural splendor. Surrounded by a picturesque forest adorned with majestic Pines, Birch, Oak, Maple, and other magnificent trees, it presents a haven of tranquility where you can escape the hustle and bustle of everyday life. At the heart of this magical setting lies a cozy cabin, offering breathtaking views of a private 12-acre lake. Step into a world where time slows down, and immerse yourself in the beauty of nature, creating unforgettable memories in an ambiance filled with cherished family history. Whether you seek solitude, outdoor adventures, or simply a space to reconnect with loved ones, Birchwood Memories welcomes you with open arms.</h2>
-      <footer className="footer">Copyright © 2023 KEEG. All rights reserved.
+      {/* Main Description */}
+      <h1 className="hcolour">Welcome To Birchwood Memories</h1>
+      <img
+        src="./images/old_cabin_photo.jpg"
+        alt="Image of a rustic cabin looking over a lake"
+        style={{
+          display: "block",
+          margin: "0 auto",
+          width: "500px",
+          height: "auto",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.9)",
+          borderRadius: "15px",
+        }}
+      />
+      <h2>Welcome to Birchwood Memories, a cherished retreat nestled amidst the serene beauty of Rose City, Michigan...</h2>
+      
+      {/* Full Description of Birchwood Memories */}
+      <p>
+        Birchwood Memories is more than just a getaway; it’s a place where families and friends can reconnect with nature. The tranquil surroundings of the Rose City area, combined with our beautiful spring-fed lake and forest trails, make for the perfect retreat. Whether you're here for a weekend or an extended stay, you'll find peace and relaxation at every turn.
+      </p>
 
-      The content, design, and graphics on this website are protected under international copyright laws and may not be reproduced, distributed, transmitted, displayed, or otherwise used without the prior written consent of KEEG. Unauthorized use of any materials on this website may violate copyright, trademark, and other laws.
+      {/* Contact for Booking Button */}
+      <nav className="navbar">
+        <button className="contact-btn" onClick={handleToggleDescription}>
+          Contact for Booking
+        </button>
+      </nav>
 
-    All trademarks, logos, and service marks displayed on this website are the property of their respective owners.
+      {/* Expandable Contact and QR code Section */}
+      {isExpanded && (
+        <section className="contact-qr-section">
+          <h2>Contact Information</h2>
+          <p>If you are interested in booking a stay or have any inquiries, feel free to reach out!</p>
+          <div className="contact-details">
+            <p>Email: contact@birchwoodmemories.com</p>
+            <p>Phone: (123) 456-7890</p>
+          </div>
 
-    For inquiries or permission requests regarding the use of content from this website, please contact
+          {/* Stripe Payment Button */}
+          <h3>Make a Payment</h3>
+          <button className="stripe-btn" onClick={handleStripePayment}>
+            Pay with Credit Card (Stripe)
+          </button>
 
-    KEEG 
-    St Marys, ON, CANADA
-    {/* [Email]
-    [Phone] */}
-    </footer>
-        </div>
-      );
-  
-  
+          {/* QR Code Section */}
+          <div className="qr-code-container">
+            <h3>Pay Using XRP</h3>
+            <QRCodeCanvas value="your-xrp-wallet-address-here" size={256} />
+            <p>Scan this QR code to make a payment using XRP</p>
+          </div>
+        </section>
+      )}
+
+      {/* Photo Gallery Section */}
+      <section className="carousel-gallery">
+        <h2>Photo Gallery</h2>
+        <Slider {...settings}>
+          {galleryImages.map((src, index) => (
+            <div key={index}>
+              <img
+                src={src}
+                alt={`Gallery Image ${index + 1}`}
+                style={{
+                  width: "100%",
+                  borderRadius: "15px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+                }}
+              />
+            </div>
+          ))}
+        </Slider>
+      </section>
+
+      <footer className="footer">
+        Copyright © 2024 KEEG. All rights reserved...
+      </footer>
+    </div>
+  );
+};
 
 export default Home;
